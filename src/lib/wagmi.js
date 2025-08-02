@@ -1,6 +1,6 @@
 import { http, createConfig } from 'wagmi'
 import { bsc, base, arbitrum } from 'wagmi/chains'
-import { metaMask, walletConnect, coinbaseWallet } from 'wagmi/connectors'
+import { metaMask, walletConnect, coinbaseWallet, injected } from 'wagmi/connectors'
 
 // Chain configurations
 export const supportedChains = [bsc, base, arbitrum]
@@ -43,26 +43,46 @@ export const USDT_ABI = [
     }
 ]
 
+// Get project ID and validate
+const projectId = process.env.NEXT_PUBLIC_WC_PROJECT_ID || '2300a8c467a51f0c4c839bc52065ddf0'
+
+if (!projectId) {
+    console.warn('WalletConnect Project ID is missing! Get one from https://cloud.walletconnect.com')
+}
+
 // Wagmi configuration
 export const config = createConfig({
     chains: supportedChains,
     connectors: [
+        injected({
+            target: 'metaMask',
+        }),
         metaMask({
             dappMetadata: {
                 name: 'Multichain USDT Approval',
                 url: typeof window !== 'undefined' ? window.location.origin : 'https://example.com',
+                iconUrl: 'https://example.com/icon.png',
             },
         }),
-        walletConnect({
-            projectId: process.env.NEXT_PUBLIC_WC_PROJECT_ID || '2300a8c467a51f0c4c839bc52065ddf0',
-            metadata: {
-                name: 'Multichain USDT Approval',
-                description: 'Approve USDT across multiple chains',
-                url: typeof window !== 'undefined' ? window.location.origin : 'https://example.com',
-                icons: ['https://example.com/icon.png']
-            },
-            showQrModal: false,
-        })
+        ...(projectId ? [
+            walletConnect({
+                projectId,
+                metadata: {
+                    name: 'Multichain USDT Approval',
+                    description: 'Approve USDT across multiple chains',
+                    url: typeof window !== 'undefined' ? window.location.origin : 'https://example.com',
+                    icons: ['https://example.com/icon.png']
+                },
+                showQrModal: true,
+                qrModalOptions: {
+                    themeMode: 'light',
+                    themeVariables: {
+                        '--wcm-z-index': '1000'
+                    }
+                }
+            })
+        ] : []),
+       
     ],
     transports: {
         [bsc.id]: http(),

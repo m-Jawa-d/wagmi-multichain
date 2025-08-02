@@ -8,7 +8,7 @@ import { ClientWrapper } from '../../components/ClientWrapper'
 
 export default function ApprovePage() {
     const { address, isConnected } = useAccount()
-    const { connect, connectors } = useConnect()
+    const { connect, connectors, error: connectError } = useConnect()
     const { disconnect } = useDisconnect()
     const chainId = useChainId()
     const { switchChain } = useSwitchChain()
@@ -37,6 +37,14 @@ export default function ApprovePage() {
         }
     }
 
+    const handleConnect = async (connector) => {
+        try {
+            await connect({ connector })
+        } catch (error) {
+            console.error('Connection failed:', error)
+        }
+    }
+
     const handleApprove = async () => {
         try {
             await approve(approvalAmount, selectedChainId)
@@ -56,6 +64,14 @@ export default function ApprovePage() {
         return `Approve ${approvalAmount} USDT`
     }
 
+    const getConnectorName = (connector) => {
+        if (connector.id === 'walletConnect') return 'Trust Wallet / WalletConnect'
+        if (connector.id === 'metaMask') return 'MetaMask'
+        if (connector.id === 'coinbaseWallet') return 'Coinbase Wallet'
+        if (connector.id === 'injected') return 'Browser Wallet'
+        return connector.name
+    }
+
     return (
         <ClientWrapper>
             <div className="min-h-screen bg-gray-100 py-8">
@@ -71,15 +87,52 @@ export default function ApprovePage() {
                                 <h2 className="text-lg font-semibold text-gray-700 mb-3">
                                     Connect Your Wallet
                                 </h2>
+
+                                {/* Connection Error Display */}
+                                {connectError && (
+                                    <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+                                        <p className="text-sm text-red-800">
+                                            Connection failed: {connectError.message}
+                                        </p>
+                                    </div>
+                                )}
+
+                                {/* Debug Info */}
+                                {process.env.NODE_ENV === 'development' && (
+                                    <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                                        <p className="text-xs text-blue-800">
+                                            Debug: Found {connectors.length} connectors
+                                        </p>
+                                        <p className="text-xs text-blue-600">
+                                            WC Project ID: {process.env.NEXT_PUBLIC_WC_PROJECT_ID ? '✅ Set' : '❌ Missing'}
+                                        </p>
+                                    </div>
+                                )}
+
                                 {connectors.map((connector) => (
                                     <button
                                         key={connector.uid}
-                                        onClick={() => connect({ connector })}
-                                        className="w-full bg-blue-500 hover:bg-blue-600 text-white font-medium py-3 px-4 rounded-lg transition-colors duration-200"
+                                        onClick={() => handleConnect(connector)}
+                                        className="w-full bg-blue-500 hover:bg-blue-600 text-white font-medium py-3 px-4 rounded-lg transition-colors duration-200 flex items-center justify-center space-x-2"
                                     >
-                                        Connect {connector.name}
+                                        <span>Connect {getConnectorName(connector)}</span>
+                                        {connector.id === 'walletConnect' && (
+                                            <span className="text-xs bg-blue-600 px-2 py-1 rounded">QR Code</span>
+                                        )}
                                     </button>
                                 ))}
+
+                                {/* Mobile Instructions */}
+                                <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                                    <p className="text-xs text-yellow-800 mb-2">
+                                        <strong>Mobile Users:</strong>
+                                    </p>
+                                    <ul className="text-xs text-yellow-700 space-y-1">
+                                        <li>• MetaMask: Use MetaMask browser</li>
+                                        <li>• Trust Wallet: Use Trust Wallet browser</li>
+                                        <li>• Other wallets: Use WalletConnect option</li>
+                                    </ul>
+                                </div>
                             </div>
                         ) : (
                             <div className="bg-green-50 border border-green-200 rounded-lg p-4">

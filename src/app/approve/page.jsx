@@ -18,6 +18,10 @@ export default function ApprovePage() {
         approve,
         formattedAllowance,
         isApproving,
+        isWaitingForConfirmation,
+        isProcessing,
+        isTransactionConfirmed,
+        transactionHash,
         approvalAmount,
         setApprovalAmount,
     } = useUSDT(selectedChainId)
@@ -44,6 +48,12 @@ export default function ApprovePage() {
     const getChainName = (chainId) => {
         const chain = supportedChains.find(c => c.id === chainId)
         return chain?.name || 'Unknown'
+    }
+
+    const getButtonText = () => {
+        if (isApproving) return 'Sending Transaction...'
+        if (isWaitingForConfirmation) return 'Waiting for Confirmation...'
+        return `Approve ${approvalAmount} USDT`
     }
 
     return (
@@ -120,16 +130,57 @@ export default function ApprovePage() {
                             value={approvalAmount}
                             onChange={(e) => setApprovalAmount(e.target.value)}
                             placeholder="Enter amount"
-                            className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            disabled={isProcessing}
+                            className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100"
                         />
                     </div>
+
+                    {/* Transaction Status */}
+                    {isProcessing && (
+                        <div className="mb-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
+                            <div className="flex items-center space-x-3">
+                                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-500"></div>
+                                <div>
+                                    <h3 className="text-sm font-medium text-blue-800">
+                                        {isApproving ? 'Processing Transaction' : 'Waiting for Confirmation'}
+                                    </h3>
+                                    {transactionHash && (
+                                        <p className="text-xs text-blue-600 font-mono mt-1">
+                                            Tx: {transactionHash.slice(0, 10)}...{transactionHash.slice(-8)}
+                                        </p>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Success Message */}
+                    {isTransactionConfirmed && (
+                        <div className="mb-6 bg-green-50 border border-green-200 rounded-lg p-4">
+                            <div className="flex items-center space-x-2">
+                                <div className="w-5 h-5 bg-green-500 rounded-full flex items-center justify-center">
+                                    <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                                    </svg>
+                                </div>
+                                <p className="text-sm font-medium text-green-800">
+                                    Transaction Confirmed! Allowance updated.
+                                </p>
+                            </div>
+                        </div>
+                    )}
 
                     {/* Current Allowance */}
                     {isConnected && (
                         <div className="mb-6 bg-gray-50 rounded-lg p-4">
-                            <h3 className="text-sm font-medium text-gray-700 mb-2">
-                                Current Allowance on {getChainName(selectedChainId)}
-                            </h3>
+                            <div className="flex items-center justify-between mb-2">
+                                <h3 className="text-sm font-medium text-gray-700">
+                                    Current Allowance on {getChainName(selectedChainId)}
+                                </h3>
+                                {(isProcessing) && (
+                                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-400"></div>
+                                )}
+                            </div>
                             <p className="text-lg font-mono text-gray-900">
                                 {formattedAllowance} USDT
                             </p>
@@ -139,10 +190,10 @@ export default function ApprovePage() {
                     {/* Approve Button */}
                     <button
                         onClick={handleApprove}
-                        disabled={!isConnected || isApproving || !approvalAmount}
+                        disabled={!isConnected || isProcessing || !approvalAmount}
                         className="w-full bg-green-500 hover:bg-green-600 disabled:bg-gray-300 disabled:cursor-not-allowed text-white font-medium py-3 px-4 rounded-lg transition-colors duration-200"
                     >
-                        {isApproving ? 'Approving...' : `Approve ${approvalAmount} USDT`}
+                        {getButtonText()}
                     </button>
 
                     {/* Navigation */}

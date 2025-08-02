@@ -1,0 +1,7 @@
+# WalletConnect Project ID (get from https://cloud.walletconnect.com)
+NEXT_PUBLIC_WC_PROJECT_ID=2300a8c467a51f0c4c839bc52065ddf0
+
+# Optional: Custom RPC URLs (if you want to use custom endpoints)
+# NEXT_PUBLIC_BSC_RPC_URL=https://bsc-dataseed.binance.org/
+# NEXT_PUBLIC_BASE_RPC_URL=https://base.llamarpc.com
+# NEXT_PUBLIC_ARBITRUM_RPC_URL=https://arbitrum.llamarpc.com

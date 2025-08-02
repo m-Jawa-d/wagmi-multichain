@@ -4,10 +4,10 @@ import { useEffect, useState } from 'react'
 import { useAccount, useConnect, useDisconnect, useChainId, useSwitchChain } from 'wagmi'
 import { supportedChains } from '../../lib/wagmi'
 import { useUSDT } from '../../hooks/useUSDT'
-import { base } from 'wagmi/chains' // Using Base as the static chain
+import { base,bsc } from 'wagmi/chains' // Using ,bsc as the static chain
 import { ClientWrapper } from '../../components/ClientWrapper'
 
-const STATIC_CHAIN_ID = base.id // You can change this to any of the supported chains
+const STATIC_CHAIN_ID = bsc.id // You can change this to any of the supported chains
 
 export default function StaticApprovePage() {
     const { address, isConnected } = useAccount()
